@@ -33,6 +33,7 @@ import re
 from datetime import datetime
 import black
 
+
 def remove_python_comments(file):
     """Removing comments from Python code. Inspiration from
     https://stackoverflow.com/questions/59270042/efficent-way-to-remove-docstring-with-regex
@@ -46,21 +47,19 @@ def remove_python_comments(file):
         with open(file) as file_handle:
             contents = file_handle.read()
     except FileNotFoundError as exception:
-        logging.error('Cannot remove comments. No such file. %s', file)
+        logging.error("Cannot remove comments. No such file. %s", file)
 
     parsed = ast.parse(contents)
 
     for node in ast.walk(parsed):
         # let's work only on functions & classes definitions
-        if not isinstance(
-            node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
-        ):
+        if not isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
             continue
         if not len(node.body):
             continue
         if not isinstance(node.body[0], ast.Expr):
             continue
-        if not hasattr(node.body[0], 'value') or not isinstance(
+        if not hasattr(node.body[0], "value") or not isinstance(
             node.body[0].value, ast.Str
         ):
             continue
@@ -74,6 +73,7 @@ def remove_python_comments(file):
     no_comments = astor.to_source(parsed)
     return no_comments
 
+
 def pylint_check(file, epsilon=1.0):
     """Use pylint to lint the input file."""
     from pylint import epylint as lint
@@ -81,13 +81,13 @@ def pylint_check(file, epsilon=1.0):
     linting_passed = False
     linter_warnings = []
     if os.stat(file).st_size == 0:
-        logging.warning('File %s is empty.', file)
+        logging.warning("File %s is empty.", file)
     else:
         (pylint_stdout, pylint_stderr) = lint.py_run(
-            file + ' -d no-member', return_std=True
+            file + " -d no-member", return_std=True
         )
-        stdout = '\n'.join(pylint_stdout.readlines())
-        stderr = '\n'.join(pylint_stderr.readlines())
+        stdout = "\n".join(pylint_stdout.readlines())
+        stderr = "\n".join(pylint_stderr.readlines())
         # print(s)
         pattern = r"been rated at (-?\d?\d?\d?\d.\d\d)/10"
         search_results = re.search(pattern, stdout)
@@ -95,25 +95,23 @@ def pylint_check(file, epsilon=1.0):
             match = search_results.group(1)
             # print('\t{}: {}'.format(file, match))
         else:
-            logging.error('%s: no match\n%s\n%s', file, stdout, stderr)
-            match = '-999'
+            logging.error("%s: no match\n%s\n%s", file, stdout, stderr)
+            match = "-999"
         pylint_best_score = 10.0
         score = float(match)
         if pylint_best_score - epsilon > score:
             logging.error(
-                '%s does not pass linting. %.2f/%.2f',
+                "%s does not pass linting. %.2f/%.2f",
                 file,
                 score,
                 pylint_best_score,
             )
         else:
-            logging.info(
-                '%s passes linting. %.2f/%.2f', file, score, pylint_best_score
-            )
+            logging.info("%s passes linting. %.2f/%.2f", file, score, pylint_best_score)
             linting_passed = True
-        linter_warnings = stdout.split('\n')
+        linter_warnings = stdout.split("\n")
         linter_warnings = [
-            line for line in linter_warnings if line != '' and line != ' '
+            line for line in linter_warnings if line != "" and line != " "
         ]
     return (linting_passed, linter_warnings)
 
@@ -134,12 +132,10 @@ def pyformat_file_in_place(
     with open(src, "rb") as buf:
         src_contents, encoding, newline = black.decode_bytes(buf.read())
     try:
-        dst_contents = black.format_file_contents(
-            src_contents, fast=fast, mode=mode
-        )
+        dst_contents = black.format_file_contents(src_contents, fast=fast, mode=mode)
 
     except black.NothingChanged:
-        return (False, '')
+        return (False, "")
     except black.JSONDecodeError:
         raise ValueError(
             f"File '{src}' cannot be parsed as valid Jupyter notebook."
@@ -152,9 +148,7 @@ def pyformat_file_in_place(
         now = datetime.utcnow()
         src_name = f"{src}\t{then} +0000"
         dst_name = f"{src}\t{now} +0000"
-        diff_contents = black.diff(
-            src_contents, dst_contents, src_name, dst_name
-        )
+        diff_contents = black.diff(src_contents, dst_contents, src_name, dst_name)
 
         if write_back == black.WriteBack.COLOR_DIFF:
             diff_contents = black.color_diff(diff_contents)
@@ -187,9 +181,7 @@ def pyformat_check(file):
     fast = False
     write_back = False
     quiet = True
-    write_back = black.WriteBack.from_configuration(
-        check=check, diff=diff, color=color
-    )
+    write_back = black.WriteBack.from_configuration(check=check, diff=diff, color=color)
     versions = set()
     mode = black.Mode(
         target_versions=versions,
@@ -222,9 +214,9 @@ def pyformat_check(file):
                 cache = black.read_cache(mode)
                 res_src = src.resolve()
                 res_src_s = str(res_src)
-                if res_src_s in cache and cache[
-                    res_src_s
-                ] == black.get_cache_info(res_src):
+                if res_src_s in cache and cache[res_src_s] == black.get_cache_info(
+                    res_src
+                ):
                     changed = black.Changed.CACHED
             if changed is not black.Changed.CACHED:
                 (status, diff_contents) = pyformat_file_in_place(
@@ -235,10 +227,7 @@ def pyformat_check(file):
             if (
                 write_back is black.WriteBack.YES
                 and changed is not black.Changed.CACHED
-            ) or (
-                write_back is black.WriteBack.CHECK
-                and changed is black.Changed.NO
-            ):
+            ) or (write_back is black.WriteBack.CHECK and changed is black.Changed.NO):
                 black.write_cache(cache, [src], mode)
             report.done(src, changed)
         except Exception as exc:
@@ -273,14 +262,16 @@ def pyformat_check(file):
     # fchecker = pycodestyle.Checker('testsuite/E27.py', show_source=True)
     # file_errors = fchecker.check_all()
     if diff_contents:
-        diff_contents = diff_contents.split('\n')
+        diff_contents = diff_contents.split("\n")
     return diff_contents
 
-def glob_py_src_files(target_dir='.'):
+
+def glob_py_src_files(target_dir="."):
     """Recurse through the target_dir and find all the .py files."""
-    return glob.glob(os.path.join(target_dir, '**/*.py'), recursive=True)
+    return glob.glob(os.path.join(target_dir, "**/*.py"), recursive=True)
+
 
 def has_pymain_condition(file):
     """Check if the given file has the __name__ == __main__"""
-    print('has_pymain_condition not implemented.')
+    print("has_pymain_condition not implemented.")
     exit(1)

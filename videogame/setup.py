@@ -1,3 +1,13 @@
+# Daniel Truong
+# CPSC 386-02
+# 2022-04-26
+# anhduy1202@csu.fullerton.edu
+# @anhduy1202
+#
+# Lab 05-00
+#
+# This is the steup file
+#
 """ Simple setup.py """
 
 from setuptools import setup

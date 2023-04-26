@@ -31,6 +31,7 @@ import sys
 
 mshafae_logger = None
 
+
 def setup_logger():
     """Set up the logger to output to stdout."""
     # https://docs.python.org/3/howto/logging.html#logging-basic-tutorial
@@ -38,12 +39,12 @@ def setup_logger():
     # root = logging.getLogger()
     global mshafae_logger
     if not mshafae_logger:
-      logger = logging.getLogger()
-      logger.setLevel(logging.INFO)
-      handler = logging.StreamHandler(sys.stdout)
-      handler.setLevel(logging.INFO)
-      formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-      handler.setFormatter(formatter)
-      logger.addHandler(handler)
-      mshafae_logger = logger
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        mshafae_logger = logger
     return mshafae_logger

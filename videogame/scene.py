@@ -1,7 +1,18 @@
+# Daniel Truong
+# CPSC 386-02
+# 2022-04-26
+# anhduy1202@csu.fullerton.edu
+# @anhduy1202
+#
+# Lab 05-00
+#
+# This is the scene file to define game sprites, update scenes
+#
 """Scene objects for making games with PyGame."""
 
 import pygame
 import rgbcolors
+import os
 
 
 # If you're interested in using abstract base classes, feel free to rewrite
@@ -56,7 +67,7 @@ class Scene:
                 pygame.mixer.music.set_volume(0.2)
             except pygame.error as pygame_error:
                 print("Cannot open the mixer?")
-                print('\n'.join(pygame_error.args))
+                print("\n".join(pygame_error.args))
                 raise SystemExit("broken!!") from pygame_error
             pygame.mixer.music.play(-1)
 
@@ -77,32 +88,23 @@ class PressAnyKeyToExitScene(Scene):
 
     def process_event(self, event):
         """Process game events."""
-        # TODO: Have the super/parent class process the event first before
-        # processing the event yourself.
-        # TOOD: If the event type is a keydown event, set self._is_valid to False.
+        super().process_event(event)
+        if event.type == pygame.KEYDOWN:
+            self._is_valid = False
 
 
-class PolygonTitleScene(PressAnyKeyToExitScene):
-    """Scene with a title string and a polygon."""
+class SpriteScene(PressAnyKeyToExitScene):
+    """Sprite scene to display sprite on the window"""
 
-    def __init__(
-        self,
-        screen,
-        title,
-        title_color=rgbcolors.ghostwhite,
-        title_size=72,
-        background_color=rgbcolors.papaya_whip,
-        soundtrack=None,
-    ):
-        """Initialize the scene."""
-        # TODO: Have the super/parent class initialized
-        # TODO: Ask pygame for the default font at title_size size. Use the font to render the string title and assign this to an instance variable named self._title in the color title_color.
-        # TODO: Ask pygame for the default font at 18 point size. Use the font to render the string 'Press any key.' in the color black. Assign the rendered text to an instance variable named self._press_any_key.
-
-    def draw(self):
-        """Draw the scene."""
-        # TODO: Have the super/parent class draw first before
-        # drawing yourself.
-        # TODO: Draw a 100 pixel by 100 pixel rectangle that has it's center located 100 pixels below the center of the window.
-        # TODO: Blit the title text to the center of the window.
-        # TODO: Blit the press any key message to the bottom of the window. The text should be centered horizontally and be 50 pixels above the bottom edge of the window.
+    def __init__(self, screen):
+        """Sprite init"""
+        super().__init__(screen, rgbcolors.black, None)
+        self._main_dir = os.path.split(os.path.abspath(__file__))[0]
+        self._data_dir = os.path.join(self._main_dir, "data")
+        """ Load background image """
+        self._background = pygame.transform.scale(
+            pygame.image.load(os.path.join(self._data_dir, "background.jpg")),
+            (screen.get_width(), screen.get_height()),
+        )
+        screen.blit(self._background, (0, 0))
+        self._render_updates = pygame.sprite.RenderUpdates()

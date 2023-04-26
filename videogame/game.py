@@ -1,12 +1,20 @@
+# Daniel Truong
+# CPSC 386-02
+# 2022-04-26
+# anhduy1202@csu.fullerton.edu
+# @anhduy1202
+#
+# Lab 05-00
+#
+# This is the game file to define main game logic
+#
 """Game objects to create PyGame based games."""
 
 import os
 import warnings
-
 import pygame
-
 import rgbcolors
-from scene import PolygonTitleScene
+from scene import SpriteScene
 
 
 def display_info():
@@ -64,20 +72,12 @@ class MyVideoGame(VideoGame):
 
     def __init__(self):
         """Init the Pygame demo."""
-        # TODO: initialize the window and set the title to "Hello"
-        super().__init__()
-        # TODO: Define an instance variable named self._main_dir which is the absolute path to the parent directory of this file, __file__.
-        # TODO: Define an instance variable named self._data_dir which is self._main_dir joined with "data".
-        # TODO: build the game's scene graph
-        self._main_dir = None
-        self._data_dir = None
-        # print(f"Our main directory is {self._main_dir}")
-        # print(f"Our data directory is {self._data_dir}")
+        super().__init__(window_title="Space Invaders")
+        self.build_scene_graph()
 
     def build_scene_graph(self):
         """Build scene graph for the game demo."""
-        # TODO: implement how the scene graph for this game is built.
-        raise NotImplementedError
+        self._scene_graph = [SpriteScene(self._screen)]
 
     def run(self):
         """Run the game; the main game loop."""

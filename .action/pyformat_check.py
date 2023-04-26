@@ -39,10 +39,10 @@ def main():
     command line."""
     status = 0
     setup_logger()
-    logger = logging.getLogger('mshafae')
+    logger = logging.getLogger("mshafae")
     if len(sys.argv) < 2:
-        logger.warning('Only %s arguments provided.', len(sys.argv))
-        logger.warning('Provide a target directory to search for .py files.')
+        logger.warning("Only %s arguments provided.", len(sys.argv))
+        logger.warning("Provide a target directory to search for .py files.")
     # src_files = []
     # for in_directory in sys.argv[1:]:
     #     src_files = src_files + glob_py_src_files(in_directory)
@@ -52,9 +52,9 @@ def main():
     #     logger.warning('No source files in the repository.')
     #     status = 1
     for in_file in sys.argv[1:]:
-        logger.info('Checking format for file: %s', in_file)
+        logger.info("Checking format for file: %s", in_file)
         if not os.path.exists(in_file):
-            logger.debug('File %s does not exist. Continuing.', in_file)
+            logger.debug("File %s does not exist. Continuing.", in_file)
             continue
         diff = pyformat_check(in_file)
         # print(f'"{diff}"')
@@ -64,13 +64,13 @@ def main():
             status = 1
         elif len(diff) != 0:
             logger.warning("Error: Formatting needs improvement.")
-            diff_string = 'Contextual Diff\n' + '\n'.join(diff)
+            diff_string = "Contextual Diff\n" + "\n".join(diff)
             logger.warning(diff_string)
             status = 1
         else:
-            logger.info('Formatting passed')
+            logger.info("Formatting passed")
     sys.exit(status)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -38,10 +38,10 @@ def main():
     """Main function; process each file given through the linter."""
     status = 0
     setup_logger()
-    logger = logging.getLogger('mshafae')
+    logger = logging.getLogger("mshafae")
     if len(sys.argv) < 2:
-        logger.warning('Only %s arguments provided.', len(sys.argv))
-        logger.warning('Provide a target directory to search for .py files.')
+        logger.warning("Only %s arguments provided.", len(sys.argv))
+        logger.warning("Provide a target directory to search for .py files.")
     # src_files = []
     # for in_directory in sys.argv[1:]:
     #     src_files = src_files + glob_py_src_files(in_directory)
@@ -51,19 +51,19 @@ def main():
     #     logger.warning('No source files in the repository.')
     #     status = 1
     for in_file in sys.argv[1:]:
-        logger.info('Linting file: %s', in_file)
+        logger.info("Linting file: %s", in_file)
         if not os.path.exists(in_file):
-            logger.debug('File %s does not exist. Continuing.', in_file)
+            logger.debug("File %s does not exist. Continuing.", in_file)
             continue
         lint_has_passed, lint_warnings = pylint_check(in_file)
         if not lint_has_passed:
-            logger.error('Linter found improvements.')
-            logger.warning('\n'.join(lint_warnings))
+            logger.error("Linter found improvements.")
+            logger.warning("\n".join(lint_warnings))
             status = 1
         else:
-            logger.info('Linting passed')
+            logger.info("Linting passed")
     sys.exit(status)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
