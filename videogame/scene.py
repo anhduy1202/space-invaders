@@ -90,7 +90,7 @@ class PressAnyKeyToExitScene(Scene):
     def process_event(self, event):
         """Process game events."""
         super().process_event(event)
-        if event.type == pygame.KEYDOWN:
+        if event.type == pygame.QUIT:
             self._is_valid = False
 
 
@@ -108,14 +108,18 @@ class SpriteScene(PressAnyKeyToExitScene):
             pygame.image.load(os.path.join(self._data_dir, "background.jpg")),
             (screen.get_width(), screen.get_height()),
         )
-        self._player = Player(self._data_dir)
+        self._player = Player(self._data_dir, self._screen)
 
     def draw(self):
+        "Draw player and enemies"
         super().draw()
-        "Draw player"
         self._screen.blit(
-            self._player.player, (self._player.x_coor, self._player.y_coor)
+            self._player.player,
+            (self._player.player_rect.x, self._player.player_rect.y),
         )
 
-    def process_event(self, event):
-        super().process_event(event)
+    def update_scene(self):
+        """Detect and handle movement"""
+        super().update_scene()
+        key_pressed = pygame.key.get_pressed()
+        self._player.handle_movement(key_pressed)

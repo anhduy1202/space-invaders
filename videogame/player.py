@@ -15,16 +15,32 @@ import pygame
 
 
 class Player:
-    def __init__(self, data_dir):
-        self.WIDTH = 55
-        self.HEIGHT = 44
+    def __init__(self, data_dir, screen):
+        """Player attributes"""
+        self.WIDTH = 100
+        self.HEIGHT = 60
         self.health = 3
         self._velocity = 5
-        self.x_coor = 0
-        self.y_coor = 0
+        self._screen = screen
+        self.x_coor = self._screen.get_width() // 2 - self.WIDTH // 2
+        self.y_coor = self._screen.get_height() - 100
+        self.player_rect = pygame.Rect(
+            self.x_coor, self.y_coor, self.WIDTH, self.HEIGHT
+        )
         self.sprite = pygame.image.load(os.path.join(data_dir, "player.png"))
         self.player = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
 
     @property
     def player_velocity(self):
+        """Return player velocity"""
         return self._velocity
+
+    def handle_movement(self, key_pressed):
+        """Move left and right"""
+        super().__init__()
+        if key_pressed[pygame.K_LEFT] and self.player_rect.x - self.player_velocity > 0:
+            self.player_rect.x -= self.player_velocity
+        if key_pressed[pygame.K_RIGHT] and self.player_rect.x + self.player_velocity < (
+            self._screen.get_width() - self.WIDTH
+        ):
+            self.player_rect.x += self.player_velocity
