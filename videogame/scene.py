@@ -10,10 +10,11 @@
 #
 """Scene objects for making games with PyGame."""
 
-import pygame
-import rgbcolors
 import os
 
+import pygame
+import rgbcolors
+from player import Player
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
@@ -99,6 +100,7 @@ class SpriteScene(PressAnyKeyToExitScene):
     def __init__(self, screen):
         """Sprite init"""
         super().__init__(screen, rgbcolors.black, None)
+        self._screen = screen
         self._main_dir = os.path.split(os.path.abspath(__file__))[0]
         self._data_dir = os.path.join(self._main_dir, "data")
         """ Load background image """
@@ -106,5 +108,14 @@ class SpriteScene(PressAnyKeyToExitScene):
             pygame.image.load(os.path.join(self._data_dir, "background.jpg")),
             (screen.get_width(), screen.get_height()),
         )
-        screen.blit(self._background, (0, 0))
-        self._render_updates = pygame.sprite.RenderUpdates()
+        self._player = Player(self._data_dir)
+
+    def draw(self):
+        super().draw()
+        "Draw player"
+        self._screen.blit(
+            self._player.player, (self._player.x_coor, self._player.y_coor)
+        )
+
+    def process_event(self, event):
+        super().process_event(event)

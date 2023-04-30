@@ -14,7 +14,7 @@ Imports the the game demo and executes the main function.
 """
 
 import sys
-import game
+
 from game import MyVideoGame
 
 if __name__ == "__main__":

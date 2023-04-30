@@ -1,0 +1,10 @@
+black==23.3.0
+click==8.1.3
+mypy-extensions==1.0.0
+packaging==23.1
+pathspec==0.11.1
+platformdirs==3.3.0
+pygame==2.3.0
+tomli==2.0.1
+typing_extensions==4.5.0
+-e git+https://github.com/cpsc-spring-2023/cpsc-386-05-invaders-anhduy1202.git@355ac8297fd2e98193c5b46e840383e7452d387e#egg=videogame&subdirectory=videogame
