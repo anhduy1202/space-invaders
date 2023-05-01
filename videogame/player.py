@@ -19,6 +19,8 @@ class Player:
         """Player attributes"""
         self.WIDTH = 100
         self.HEIGHT = 60
+        self.MAX_BULLETS = 3
+        self.bullets = []
         self.health = 3
         self._velocity = 5
         self._screen = screen
@@ -37,10 +39,16 @@ class Player:
 
     def handle_movement(self, key_pressed):
         """Move left and right"""
-        super().__init__()
         if key_pressed[pygame.K_LEFT] and self.player_rect.x - self.player_velocity > 0:
             self.player_rect.x -= self.player_velocity
         if key_pressed[pygame.K_RIGHT] and self.player_rect.x + self.player_velocity < (
             self._screen.get_width() - self.WIDTH
         ):
             self.player_rect.x += self.player_velocity
+
+    def handle_bullet(self):
+        """Detect bullets"""
+        for bullet in self.bullets:
+            bullet.y -= 7
+            if bullet.y < self.HEIGHT:
+                self.bullets.remove(bullet)

@@ -14,6 +14,7 @@ import os
 
 import pygame
 import rgbcolors
+from menu import Menu, Title
 from player import Player
 
 # If you're interested in using abstract base classes, feel free to rewrite
@@ -32,23 +33,60 @@ class Scene:
         self._background.fill(background_color)
         self._frame_rate = 60
         self._is_valid = True
+        "For the menu"
+        self._select = 0
+        self.selected_option = ""
+        self.menu = Menu(screen)
+        self.title = Title(screen)
         self._soundtrack = soundtrack
         self._render_updates = None
 
     def draw(self):
-        """Draw the scene."""
+        """Draw the scene with menu to start with"""
         self._screen.blit(self._background, (0, 0))
+        if self.menu.menu_shown:
+            self._screen.blit(
+                self.title.title, (self.title.title_pos_x, self.title.title_pos_y)
+            )
+        # Display the menu options
+        if self.menu.menu_shown:
+            for index, option in enumerate(self.menu.options):
+                if index == self._select:
+                    text = self.menu.font.render(option, True, rgbcolors.yellow1)
+                else:
+                    text = self.menu.font.render(option, True, rgbcolors.ghost_white)
+                text_pos = (
+                    self.menu.x_coor,
+                    self.menu.y_coor + index * self.menu.spacing,
+                )
+                self._screen.blit(text, text_pos)
 
     def process_event(self, event):
         """Process a game event by the scene."""
-        # This should be commented out or removed since it generates a lot of noise.
-        # print(str(event))
-        if event.type == pygame.QUIT:
-            print("Good Bye!")
-            self._is_valid = False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            print("Bye bye!")
-            self._is_valid = False
+        if event.type == pygame.KEYDOWN:
+            if event.type == pygame.QUIT:
+                print("Good Bye!")
+                self._is_valid = False
+            "Handle menu options"
+            if self.menu.menu_shown:
+                if event.key == pygame.K_UP:
+                    "Move the selected option up"
+                    self._select = (self._select - 1) % len(self.menu.options)
+                elif event.key == pygame.K_DOWN:
+                    "Move the selected option down"
+                    self._select = (self._select + 1) % len(self.menu.options)
+                elif event.key == pygame.K_RETURN:
+                    if self.menu.options[self._select] == "Start Game":
+                        self.selected_option = "Start Game"
+                        self.menu.hide_menu()
+                    elif self.menu.options[self._select] == "High Scores":
+                        self.selected_option == "High Scores"
+                        self.menu.hide_menu()
+                    elif self.menu.options[self._select] == "Settings":
+                        self.selected_option == "Settings"
+                        self.menu.hide_menu()
+                    elif self.menu.options[self._select] == "Quit":
+                        self._is_valid = False
 
     def is_valid(self):
         """Is the scene valid? A valid scene can be used to play a scene."""
@@ -111,15 +149,35 @@ class SpriteScene(PressAnyKeyToExitScene):
         self._player = Player(self._data_dir, self._screen)
 
     def draw(self):
-        "Draw player and enemies"
+        """Draw player, bullets, enemies"""
         super().draw()
-        self._screen.blit(
-            self._player.player,
-            (self._player.player_rect.x, self._player.player_rect.y),
-        )
+        if self.selected_option == "Start Game":
+            self._screen.blit(
+                self._player.player,
+                (self._player.player_rect.x, self._player.player_rect.y),
+            )
+            for bullet in self._player.bullets:
+                pygame.draw.rect(self._screen, rgbcolors.sky_blue, bullet)
+
+    def process_event(self, event):
+        """Detect movement"""
+        super().process_event(event)
+        if (
+            event.type == pygame.KEYDOWN
+            and event.key == pygame.K_SPACE
+            and len(self._player.bullets) < self._player.MAX_BULLETS
+        ):
+            bullet = pygame.Rect(
+                self._player.player_rect.x + self._player.WIDTH // 2 - 2,
+                self._player.player_rect.y + self._player.HEIGHT // 2 - 20,
+                5,
+                15,
+            )
+            self._player.bullets.append(bullet)
 
     def update_scene(self):
         """Detect and handle movement"""
         super().update_scene()
         key_pressed = pygame.key.get_pressed()
         self._player.handle_movement(key_pressed)
+        self._player.handle_bullet()
