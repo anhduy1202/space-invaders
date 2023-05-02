@@ -10,11 +10,9 @@
 #
 """Game objects to create PyGame based games."""
 
-import os
 import warnings
 
 import pygame
-import rgbcolors
 from scene import SpriteScene
 
 

@@ -15,6 +15,8 @@ import rgbcolors
 
 
 class Menu:
+    """Menu class for making the menu of the game."""
+
     def __init__(self, screen):
         """Menu attribute"""
         self.screen = screen
@@ -27,7 +29,12 @@ class Menu:
         self.y_coor = 200
         self.spacing = 50
         self.options = ["Start Game", "High Scores", "Settings", "Quit"]
-        self.rules_controls_text = "RULES:\n\n- Use the arrow keys to move your spaceship\n- Press the space bar to fire\n\nDESTROY ALL THE INVADERS TO WIN!"
+        self.rules_controls_text = [
+            "RULES:",
+            "- Use the arrow keys to move your spaceship",
+            "- Press the space bar to fire",
+            "DESTROY ALL THE INVADERS TO WIN!",
+        ]
 
     def hide_menu(self):
         """Hide the menu"""
@@ -35,6 +42,8 @@ class Menu:
 
 
 class Title(Menu):
+    """Title class for the menu title"""
+
     def __init__(self, screen):
         """Define title of the game"""
         super().__init__(screen)

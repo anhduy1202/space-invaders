@@ -15,6 +15,8 @@ import pygame
 
 
 class Player:
+    """Player class aka the spaceship"""
+
     def __init__(self, data_dir, screen):
         """Player attributes"""
         self.WIDTH = 100

@@ -60,6 +60,17 @@ class Scene:
                     self.menu.y_coor + index * self.menu.spacing,
                 )
                 self._screen.blit(text, text_pos)
+            self.display_rules_controls()
+
+    def display_rules_controls(self):
+        """Function to display the rules and controls"""
+        pos_x = self.menu.x_coor
+        pos_y = self.menu.y_coor + len(self.menu.options) * self.menu.spacing
+        # Display each line separately
+        for line in self.menu.rules_controls_text:
+            text = self.menu.font.render(line, True, rgbcolors.white)
+            self._screen.blit(text, (pos_x // 2, pos_y + 100))
+            pos_y += self.menu.spacing
 
     def process_event(self, event):
         """Process a game event by the scene."""
