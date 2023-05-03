@@ -48,9 +48,16 @@ class Player:
         ):
             self.player_rect.x += self.player_velocity
 
-    def handle_bullet(self):
+    def handle_bullet(self, aliens):
         """Detect bullets"""
         for bullet in self.bullets:
             bullet.y -= 7
             if bullet.y < self.HEIGHT:
                 self.bullets.remove(bullet)
+            else:
+                # When bullet hit an alien
+                index = bullet.collidelist([c.rect for c in aliens])
+                if index > -1:
+                    collided_alien = aliens.sprites()[index]
+                    collided_alien.kill()
+                    self.bullets.remove(bullet)

@@ -14,6 +14,7 @@ import os
 
 import pygame
 import rgbcolors
+from alien import Aliens
 from menu import Menu, Title
 from player import Player
 
@@ -157,7 +158,9 @@ class SpriteScene(PressAnyKeyToExitScene):
             pygame.image.load(os.path.join(self._data_dir, "background.jpg")),
             (screen.get_width(), screen.get_height()),
         )
+        """ Load player, alien image"""
         self._player = Player(self._data_dir, self._screen)
+        self._alien_group = Aliens(self._data_dir, self._screen)
 
     def draw(self):
         """Draw player, bullets, enemies"""
@@ -167,6 +170,7 @@ class SpriteScene(PressAnyKeyToExitScene):
                 self._player.player,
                 (self._player.player_rect.x, self._player.player_rect.y),
             )
+            self._alien_group.alien_group.draw(self._screen)
             for bullet in self._player.bullets:
                 pygame.draw.rect(self._screen, rgbcolors.sky_blue, bullet)
 
@@ -191,4 +195,4 @@ class SpriteScene(PressAnyKeyToExitScene):
         super().update_scene()
         key_pressed = pygame.key.get_pressed()
         self._player.handle_movement(key_pressed)
-        self._player.handle_bullet()
+        self._player.handle_bullet(self._alien_group.alien_group)
