@@ -34,6 +34,16 @@ class Alien(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.x_coor, self.y_coor, WIDTH, HEIGHT)
         self.sprite = pygame.image.load(os.path.join(data_dir, "alien.png"))
         self.image = pygame.transform.scale(self.sprite, (WIDTH, HEIGHT))
+        self.last_shot_time = pygame.time.get_ticks()
+        self.shoot_timer = 0
+
+    def handle_bullet(self):
+        """Detect bullets"""
+        for bullet in self.bullets:
+            bullet.y += 7
+
+    def can_shoot(self):
+        return self.shoot_timer >= 3000
 
 
 class Aliens:

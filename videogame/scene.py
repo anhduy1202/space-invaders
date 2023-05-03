@@ -11,6 +11,7 @@
 """Scene objects for making games with PyGame."""
 
 import os
+import random
 
 import pygame
 import rgbcolors
@@ -173,6 +174,9 @@ class SpriteScene(PressAnyKeyToExitScene):
             self._alien_group.alien_group.draw(self._screen)
             for bullet in self._player.bullets:
                 pygame.draw.rect(self._screen, rgbcolors.sky_blue, bullet)
+            for alien in self._alien_group.alien_group:
+                for bullet in alien.bullets:
+                    pygame.draw.rect(self._screen, rgbcolors.violet_red, bullet)
 
     def process_event(self, event):
         """Detect movement"""
@@ -182,17 +186,32 @@ class SpriteScene(PressAnyKeyToExitScene):
             and event.key == pygame.K_SPACE
             and len(self._player.bullets) < self._player.MAX_BULLETS
         ):
-            bullet = pygame.Rect(
+            player_bullet = pygame.Rect(
                 self._player.player_rect.x + self._player.WIDTH // 2 - 2,
                 self._player.player_rect.y + self._player.HEIGHT // 2 - 20,
                 5,
                 15,
             )
-            self._player.bullets.append(bullet)
+            self._player.bullets.append(player_bullet)
 
     def update_scene(self):
         """Detect and handle movement"""
         super().update_scene()
         key_pressed = pygame.key.get_pressed()
+        now = pygame.time.get_ticks()
+        if self.selected_option == "Start Game":
+            for alien in self._alien_group.alien_group:
+                alien.shoot_timer += now
+                if now - alien.last_shot_time > random.randint(1000, 3000):
+                    alien.last_shot_time = now
+                    alien_bullet = pygame.Rect(
+                        alien.x_coor,
+                        alien.y_coor,
+                        5,
+                        15,
+                    )
+                    alien.bullets.append(alien_bullet)
         self._player.handle_movement(key_pressed)
         self._player.handle_bullet(self._alien_group.alien_group)
+        for alien in self._alien_group.alien_group:
+            alien.handle_bullet()
