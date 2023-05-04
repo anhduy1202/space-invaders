@@ -24,8 +24,8 @@ class Alien(pygame.sprite.Sprite):
         """Alien attributes"""
         pygame.sprite.Sprite.__init__(self)
         self.MAX_BULLETS = 1
-        self.WIDTH = 80
-        self.HEIGHT = 80
+        self.WIDTH = 70
+        self.HEIGHT = 70
         self.bullets = []
         self.health = 1
         self._velocity = random.randint(0, 10)
@@ -56,7 +56,7 @@ class Aliens(Alien):
         self.ROWS = 3
         self.MAX_ALIENS = 30
         self.X_INIT = 0
-        self.Y_INIT = 10
+        self.Y_INIT = 100
         self.data_dir = data_dir
         self.screen = screen
         self.alien_group = pygame.sprite.Group()

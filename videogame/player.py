@@ -12,6 +12,7 @@
 import os
 
 import pygame
+import rgbcolors
 
 
 class Player(pygame.sprite.Sprite):
@@ -23,8 +24,11 @@ class Player(pygame.sprite.Sprite):
         self.WIDTH = 100
         self.HEIGHT = 60
         self.MAX_BULLETS = 3
+        self.HEALTH_FONT = pygame.font.Font(None, 52)
+        self.SCORE_FONT = pygame.font.Font(None, 52)
         self.bullets = []
         self.health = 3
+        self.scores = 0
         self._velocity = 5
         self._screen = screen
         self.x_coor = self._screen.get_width() // 2 - self.WIDTH // 2
@@ -59,6 +63,7 @@ class Player(pygame.sprite.Sprite):
                 if index > -1:
                     collided_alien = aliens.sprites()[index]
                     collided_alien.kill()
+                    self.scores += 1
                     self.bullets.remove(bullet)
         """Detect when bullet hit player"""
         for alien in aliens:
@@ -69,7 +74,3 @@ class Player(pygame.sprite.Sprite):
                     else:
                         alien.bullets.remove(bullet)
                         self.health -= 1
-
-        # index = self.rect.collidelist([bullet for alien in aliens for bullet in alien.bullets])
-        # if index > -1:
-        #     player.kill()

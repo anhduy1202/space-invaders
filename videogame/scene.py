@@ -177,6 +177,18 @@ class SpriteScene(PressAnyKeyToExitScene):
             for alien in self._alien_group.alien_group:
                 for bullet in alien.bullets:
                     pygame.draw.rect(self._screen, rgbcolors.violet_red, bullet)
+            self.draw_tools()
+
+    def draw_tools(self):
+        """Draw healthbar, scores, other things"""
+        health_bar = self._player.HEALTH_FONT.render(
+            f"Health: {self._player.health}", 1, rgbcolors.white
+        )
+        score_bar = self._player.SCORE_FONT.render(
+            f"Scores: {self._player.scores}", 1, rgbcolors.yellow1
+        )
+        self._screen.blit(health_bar, (20, 50))
+        self._screen.blit(score_bar, (self._screen.get_width() - 200, 50))
 
     def process_event(self, event):
         """Detect movement"""
@@ -199,18 +211,27 @@ class SpriteScene(PressAnyKeyToExitScene):
         super().update_scene()
         key_pressed = pygame.key.get_pressed()
         now = pygame.time.get_ticks()
+        random_idx = random.randint(
+            0,
+            1
+            if len(self._alien_group.alien_group) <= 0
+            else len(self._alien_group.alien_group) - 1,
+        )
         if self.selected_option == "Start Game":
-            for idx, alien in enumerate(self._alien_group.alien_group):
-                alien.shoot_timer += now
-                if now - alien.last_shot_time > random.randint(1000, 3000):
-                    alien.last_shot_time = now
+            """Make alien shoot bullet one at a time randomly"""
+            if len(self._alien_group.alien_group) > 0:
+                random_alien = self._alien_group.alien_group.sprites()[random_idx]
+                random_alien.shoot_timer += now
+                if now - random_alien.last_shot_time > random.randint(1000, 3000):
+                    random_alien.last_shot_time = now
                     alien_bullet = pygame.Rect(
-                        alien.x_coor + alien.WIDTH // 2,
-                        alien.y_coor + alien.HEIGHT // 2 + 20,
+                        random_alien.x_coor + random_alien.WIDTH // 2,
+                        random_alien.y_coor + random_alien.HEIGHT // 2 + 20,
                         5,
                         15,
                     )
-                    alien.bullets.append(alien_bullet)
+                    random_alien.bullets.append(alien_bullet)
+
         self._player.handle_movement(key_pressed)
         self._player.handle_bullet(self._alien_group.alien_group, self._player)
         for alien in self._alien_group.alien_group:
