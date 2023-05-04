@@ -169,7 +169,7 @@ class SpriteScene(PressAnyKeyToExitScene):
         if self.selected_option == "Start Game":
             self._screen.blit(
                 self._player.player,
-                (self._player.player_rect.x, self._player.player_rect.y),
+                (self._player.rect.x, self._player.rect.y),
             )
             self._alien_group.alien_group.draw(self._screen)
             for bullet in self._player.bullets:
@@ -187,8 +187,8 @@ class SpriteScene(PressAnyKeyToExitScene):
             and len(self._player.bullets) < self._player.MAX_BULLETS
         ):
             player_bullet = pygame.Rect(
-                self._player.player_rect.x + self._player.WIDTH // 2 - 2,
-                self._player.player_rect.y + self._player.HEIGHT // 2 - 20,
+                self._player.rect.x + self._player.WIDTH // 2 - 2,
+                self._player.rect.y + self._player.HEIGHT // 2 - 20,
                 5,
                 15,
             )
@@ -200,18 +200,18 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
         now = pygame.time.get_ticks()
         if self.selected_option == "Start Game":
-            for alien in self._alien_group.alien_group:
+            for idx, alien in enumerate(self._alien_group.alien_group):
                 alien.shoot_timer += now
                 if now - alien.last_shot_time > random.randint(1000, 3000):
                     alien.last_shot_time = now
                     alien_bullet = pygame.Rect(
-                        alien.x_coor,
-                        alien.y_coor,
+                        alien.x_coor + alien.WIDTH // 2,
+                        alien.y_coor + alien.HEIGHT // 2 + 20,
                         5,
                         15,
                     )
                     alien.bullets.append(alien_bullet)
         self._player.handle_movement(key_pressed)
-        self._player.handle_bullet(self._alien_group.alien_group)
+        self._player.handle_bullet(self._alien_group.alien_group, self._player)
         for alien in self._alien_group.alien_group:
             alien.handle_bullet()

@@ -10,11 +10,10 @@
 #
 """Alien object"""
 import os
+import random
 
 import pygame
 
-WIDTH = 80
-HEIGHT = 80
 SPACING = 10
 
 
@@ -25,15 +24,17 @@ class Alien(pygame.sprite.Sprite):
         """Alien attributes"""
         pygame.sprite.Sprite.__init__(self)
         self.MAX_BULLETS = 1
+        self.WIDTH = 80
+        self.HEIGHT = 80
         self.bullets = []
         self.health = 1
-        self._velocity = 3
+        self._velocity = random.randint(0, 10)
         self._screen = screen
         self.x_coor = x_pos
         self.y_coor = y_pos
-        self.rect = pygame.Rect(self.x_coor, self.y_coor, WIDTH, HEIGHT)
+        self.rect = pygame.Rect(self.x_coor, self.y_coor, self.WIDTH, self.HEIGHT)
         self.sprite = pygame.image.load(os.path.join(data_dir, "alien.png"))
-        self.image = pygame.transform.scale(self.sprite, (WIDTH, HEIGHT))
+        self.image = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
         self.last_shot_time = pygame.time.get_ticks()
         self.shoot_timer = 0
 
@@ -46,13 +47,14 @@ class Alien(pygame.sprite.Sprite):
         return self.shoot_timer >= 3000
 
 
-class Aliens:
+class Aliens(Alien):
     "Bunch of aliens"
 
     def __init__(self, data_dir, screen):
         """Commond attributes between all aliens"""
-        self.ROWS = 4
-        self.MAX_ALIENS = 40
+        super().__init__(data_dir, screen)
+        self.ROWS = 3
+        self.MAX_ALIENS = 30
         self.X_INIT = 0
         self.Y_INIT = 10
         self.data_dir = data_dir
@@ -64,7 +66,7 @@ class Aliens:
         """Group aliens"""
         for row in range(self.ROWS):
             for col in range(self.MAX_ALIENS // self.ROWS):
-                x_pos = self.X_INIT + col * (WIDTH + SPACING)
-                y_pos = self.Y_INIT + row * (HEIGHT + SPACING)
+                x_pos = self.X_INIT + col * (self.WIDTH + SPACING)
+                y_pos = self.Y_INIT + row * (self.HEIGHT + SPACING)
                 alien = Alien(self.data_dir, self.screen, x_pos, y_pos)
                 self.alien_group.add(alien)
