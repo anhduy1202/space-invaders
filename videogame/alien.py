@@ -28,7 +28,7 @@ class Alien(pygame.sprite.Sprite):
         self.HEIGHT = 70
         self.bullets = []
         self._is_exploding = False
-        self.health = 1
+        self._health = 1
         self._bullet_velocity = random.randint(3, 5)
         self._screen = screen
         self.x_coor = x_pos
@@ -40,7 +40,7 @@ class Alien(pygame.sprite.Sprite):
         self.shoot_timer = 0
 
     @property
-    def get_bullet_velocity(self):
+    def bullet_velocity(self):
         """Return alien bullet velocity"""
         return self._bullet_velocity
 
@@ -48,6 +48,16 @@ class Alien(pygame.sprite.Sprite):
     def is_exploding(self):
         """Return exploding state"""
         return self._is_exploding
+
+    @property
+    def health(self):
+        """Return alien health"""
+        return self._health
+
+    @health.setter
+    def minus_health(self, val):
+        "Setter for health"
+        self._health -= val
 
     @is_exploding.setter
     def is_exploding(self, val):
@@ -57,7 +67,7 @@ class Alien(pygame.sprite.Sprite):
     def handle_bullet(self):
         """Handle bullet movement"""
         for bullet in self.bullets:
-            bullet.y += self.get_bullet_velocity
+            bullet.y += self.bullet_velocity
             if bullet.y > self._screen.get_height() - 60:
                 self.bullets.remove(bullet)
 

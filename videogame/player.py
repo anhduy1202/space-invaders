@@ -28,7 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.HEALTH_FONT = pygame.font.Font(None, 52)
         self.SCORE_FONT = pygame.font.Font(None, 52)
         self.bullets = []
-        self.health = 3
+        self._health = 3
         self._win = False
         self.scores = 0
         self._velocity = 5
@@ -38,6 +38,16 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.x_coor, self.y_coor, self.WIDTH, self.HEIGHT)
         self.sprite = pygame.image.load(os.path.join(data_dir, "player.png"))
         self.player = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
+
+    @property
+    def health(self):
+        """Return player health"""
+        return self._health
+
+    @health.setter
+    def set_health(self, val):
+        """Set player health"""
+        self._health = val
 
     @property
     def player_velocity(self):
@@ -75,10 +85,13 @@ class Player(pygame.sprite.Sprite):
                 if index > -1:
                     Explosion(aliens.sprites()[index])
                     collided_alien = aliens.sprites()[index]
-                    collided_alien.is_exploding = True
-                    collided_alien.kill()
-                    self.scores += 1
+                    collided_alien.minus_health = 1
+                    if collided_alien.health == 0:
+                        collided_alien.is_exploding = True
+                        aliens.sprites()[index].kill()
+                        self.scores += 1
                     self.bullets.remove(bullet)
+
         """Detect when bullet hit player"""
         for alien in aliens:
             for bullet in alien.bullets:
@@ -87,4 +100,4 @@ class Player(pygame.sprite.Sprite):
                         print("IM DEAD")
                     else:
                         alien.bullets.remove(bullet)
-                        self.health -= 1
+                        self.set_health -= 1
