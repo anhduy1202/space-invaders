@@ -16,6 +16,7 @@ import random
 import pygame
 import rgbcolors
 from alien import Aliens
+from animation import Explosion
 from menu import Menu, Title
 from player import Player
 
@@ -151,6 +152,8 @@ class SpriteScene(PressAnyKeyToExitScene):
     def __init__(self, screen):
         """Sprite init"""
         super().__init__(screen, rgbcolors.black, None)
+        self._render_updates = pygame.sprite.RenderUpdates()
+        Explosion.containers = self._render_updates
         self._screen = screen
         self._main_dir = os.path.split(os.path.abspath(__file__))[0]
         self._data_dir = os.path.join(self._main_dir, "data")
@@ -162,6 +165,8 @@ class SpriteScene(PressAnyKeyToExitScene):
         """ Load player, alien image"""
         self._player = Player(self._data_dir, self._screen)
         self._alien_group = Aliens(self._data_dir, self._screen)
+        self._render_updates = pygame.sprite.RenderUpdates()
+        Explosion.containers = self._render_updates
 
     def draw(self):
         """Draw player, bullets, enemies"""
@@ -206,33 +211,21 @@ class SpriteScene(PressAnyKeyToExitScene):
             )
             self._player.bullets.append(player_bullet)
 
+    def render_updates(self):
+        super().render_updates()
+        self._render_updates.clear(self._screen, self._background)
+        self._render_updates.update()
+        dirty = self._render_updates.draw(self._screen)
+
     def update_scene(self):
         """Detect and handle movement"""
         super().update_scene()
         key_pressed = pygame.key.get_pressed()
-        now = pygame.time.get_ticks()
-        random_idx = random.randint(
-            0,
-            1
-            if len(self._alien_group.alien_group) <= 0
-            else len(self._alien_group.alien_group) - 1,
-        )
+
         if self.selected_option == "Start Game":
             """Make alien shoot bullet one at a time randomly"""
-            if len(self._alien_group.alien_group) > 0:
-                random_alien = self._alien_group.alien_group.sprites()[random_idx]
-                random_alien.shoot_timer += now
-                if now - random_alien.last_shot_time > random.randint(1000, 3000):
-                    random_alien.last_shot_time = now
-                    alien_bullet = pygame.Rect(
-                        random_alien.x_coor + random_alien.WIDTH // 2,
-                        random_alien.y_coor + random_alien.HEIGHT // 2 + 20,
-                        5,
-                        15,
-                    )
-                    random_alien.bullets.append(alien_bullet)
-
-        self._player.handle_movement(key_pressed)
-        self._player.handle_bullet(self._alien_group.alien_group, self._player)
-        for alien in self._alien_group.alien_group:
-            alien.handle_bullet()
+            self._alien_group.handle_bullet()
+            self._player.handle_movement(key_pressed)
+            self._player.handle_bullet(self._alien_group.alien_group, self._player)
+            for alien in self._alien_group.alien_group:
+                alien.handle_bullet()

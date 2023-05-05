@@ -13,6 +13,7 @@ import os
 
 import pygame
 import rgbcolors
+from animation import Explosion
 
 
 class Player(pygame.sprite.Sprite):
@@ -61,7 +62,9 @@ class Player(pygame.sprite.Sprite):
                 # When bullet hit an alien
                 index = bullet.collidelist([c.rect for c in aliens])
                 if index > -1:
+                    Explosion(aliens.sprites()[index])
                     collided_alien = aliens.sprites()[index]
+                    collided_alien.is_exploding = True
                     collided_alien.kill()
                     self.scores += 1
                     self.bullets.remove(bullet)

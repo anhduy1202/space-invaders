@@ -27,8 +27,9 @@ class Alien(pygame.sprite.Sprite):
         self.WIDTH = 70
         self.HEIGHT = 70
         self.bullets = []
+        self._is_exploding = False
         self.health = 1
-        self._velocity = random.randint(0, 10)
+        self._velocity = random.randint(3, 5)
         self._screen = screen
         self.x_coor = x_pos
         self.y_coor = y_pos
@@ -36,15 +37,25 @@ class Alien(pygame.sprite.Sprite):
         self.sprite = pygame.image.load(os.path.join(data_dir, "alien.png"))
         self.image = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
         self.last_shot_time = pygame.time.get_ticks()
-        self.shoot_timer = 0
+
+    @property
+    def get_velocity(self):
+        return self._velocity
+
+    @property
+    def is_exploding(self):
+        return self._is_exploding
+
+    @is_exploding.setter
+    def is_exploding(self, val):
+        self._is_exploding = val
 
     def handle_bullet(self):
-        """Detect bullets"""
+        """Handle bullet movement"""
         for bullet in self.bullets:
-            bullet.y += 7
-
-    def can_shoot(self):
-        return self.shoot_timer >= 3000
+            bullet.y += self.get_velocity
+            if bullet.y > self._screen.get_height() - 60:
+                self.bullets.remove(bullet)
 
 
 class Aliens(Alien):
@@ -70,3 +81,24 @@ class Aliens(Alien):
                 y_pos = self.Y_INIT + row * (self.HEIGHT + SPACING)
                 alien = Alien(self.data_dir, self.screen, x_pos, y_pos)
                 self.alien_group.add(alien)
+
+    def handle_bullet(self):
+        """Handle alien bullets"""
+        if len(self.alien_group) > 0:
+            now = pygame.time.get_ticks()
+            random_idx = random.randint(
+                0,
+                1 if len(self.alien_group) <= 0 else len(self.alien_group) - 1,
+            )
+            random_alien = self.alien_group.sprites()[random_idx]
+            random_alien.shoot_timer += now
+            if len(random_alien.bullets) < random_alien.MAX_BULLETS:
+                if now - random_alien.last_shot_time > random.randint(1000, 3000):
+                    random_alien.last_shot_time = now
+                    alien_bullet = pygame.Rect(
+                        random_alien.x_coor + random_alien.WIDTH // 2,
+                        random_alien.y_coor + random_alien.HEIGHT // 2 + 20,
+                        5,
+                        15,
+                    )
+                    random_alien.bullets.append(alien_bullet)
