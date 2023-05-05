@@ -223,9 +223,8 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
 
         if self.selected_option == "Start Game":
-            """Make alien shoot bullet one at a time randomly"""
-            self._alien_group.handle_bullet()
             self._player.handle_movement(key_pressed)
+            self._alien_group.handle_bullet()
             self._player.handle_bullet(self._alien_group.alien_group, self._player)
             for alien in self._alien_group.alien_group:
                 alien.handle_bullet()

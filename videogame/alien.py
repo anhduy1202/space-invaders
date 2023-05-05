@@ -37,6 +37,7 @@ class Alien(pygame.sprite.Sprite):
         self.sprite = pygame.image.load(os.path.join(data_dir, "alien.png"))
         self.image = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
         self.last_shot_time = pygame.time.get_ticks()
+        self.shoot_timer = 0
 
     @property
     def get_velocity(self):
@@ -90,6 +91,7 @@ class Aliens(Alien):
                 0,
                 1 if len(self.alien_group) <= 0 else len(self.alien_group) - 1,
             )
+            """Make alien shoot bullet one at a time randomly"""
             random_alien = self.alien_group.sprites()[random_idx]
             random_alien.shoot_timer += now
             if len(random_alien.bullets) < random_alien.MAX_BULLETS:
