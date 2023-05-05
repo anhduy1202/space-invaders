@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.SCORE_FONT = pygame.font.Font(None, 52)
         self.bullets = []
         self.health = 3
+        self._win = False
         self.scores = 0
         self._velocity = 5
         self._screen = screen
@@ -42,6 +43,16 @@ class Player(pygame.sprite.Sprite):
     def player_velocity(self):
         """Return player velocity"""
         return self._velocity
+
+    @property
+    def win_game(self):
+        """Return if player win or not"""
+        return self._win
+
+    @win_game.setter
+    def win_game(self, val):
+        """Setter for win_game"""
+        self._win = val
 
     def handle_movement(self, key_pressed):
         """Move left and right"""
