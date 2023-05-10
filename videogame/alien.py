@@ -24,11 +24,12 @@ class Alien(pygame.sprite.Sprite):
         """Alien attributes"""
         pygame.sprite.Sprite.__init__(self)
         self.MAX_BULLETS = 1
-        self.WIDTH = 70
-        self.HEIGHT = 70
+        self.WIDTH = 65
+        self.HEIGHT = 65
         self.bullets = []
         self._is_exploding = False
         self._health = 1
+        self._speed = 20
         self._bullet_velocity = random.randint(3, 5)
         self._screen = screen
         self.x_coor = x_pos
@@ -37,7 +38,7 @@ class Alien(pygame.sprite.Sprite):
         self.sprite = pygame.image.load(os.path.join(data_dir, "alien.png"))
         self.image = pygame.transform.scale(self.sprite, (self.WIDTH, self.HEIGHT))
         self.last_shot_time = pygame.time.get_ticks()
-        self.shoot_timer = 0
+        self.last_pos = pygame.time.get_ticks()
 
     @property
     def bullet_velocity(self):
@@ -53,6 +54,11 @@ class Alien(pygame.sprite.Sprite):
     def health(self):
         """Return alien health"""
         return self._health
+
+    @property
+    def speed(self):
+        """Return alien speed"""
+        return self._speed
 
     @health.setter
     def minus_health(self, val):
@@ -71,6 +77,28 @@ class Alien(pygame.sprite.Sprite):
             if bullet.y > self._screen.get_height() - 60:
                 self.bullets.remove(bullet)
 
+    def march_towards(self, alien_group):
+        """Aliens march towards spaceship"""
+        pause_time = 1000
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_pos > random.randint(1000, 3000):
+            self.last_pos = current_time
+            dx = self.rect.x + self.speed
+            dy = self.rect.y + self.speed
+            if dy > self._screen.get_height() - 200:
+                print("OUT OF BOUND")
+                alien_group.stop_y = True
+            if dx > self._screen.get_width() - self.WIDTH:
+                alien_group.stop_x = True
+            if dx <= 0:
+                alien_group.stop_x = False
+                if alien_group.stop_y == False:
+                    self.rect.y += 1
+            if alien_group.stop_x == False:
+                self.rect.x += self.speed
+            else:
+                self.rect.x -= self.speed
+
 
 class Aliens(Alien):
     "Bunch of aliens"
@@ -84,6 +112,8 @@ class Aliens(Alien):
         self.Y_INIT = 100
         self.data_dir = data_dir
         self.screen = screen
+        self.stop_x = False
+        self.stop_y = False
         self.alien_group = pygame.sprite.Group()
         self.group_aliens()
 
@@ -106,13 +136,12 @@ class Aliens(Alien):
             )
             """Make alien shoot bullet one at a time randomly"""
             random_alien = self.alien_group.sprites()[random_idx]
-            random_alien.shoot_timer += now
             if len(random_alien.bullets) < random_alien.MAX_BULLETS:
                 if now - random_alien.last_shot_time > random.randint(1000, 3000):
                     random_alien.last_shot_time = now
                     alien_bullet = pygame.Rect(
-                        random_alien.x_coor + random_alien.WIDTH // 2,
-                        random_alien.y_coor + random_alien.HEIGHT // 2 + 20,
+                        random_alien.rect.x + random_alien.WIDTH // 2,
+                        random_alien.rect.y + random_alien.HEIGHT // 2 + 20,
                         5,
                         15,
                     )

@@ -227,4 +227,5 @@ class SpriteScene(PressAnyKeyToExitScene):
             self._alien_group.handle_bullet()
             self._player.handle_bullet(self._alien_group.alien_group, self._player)
             for alien in self._alien_group.alien_group:
+                alien.march_towards(self._alien_group)
                 alien.handle_bullet()
