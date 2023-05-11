@@ -143,7 +143,9 @@ class PressAnyKeyToExitScene(Scene):
     def process_event(self, event):
         """Process game events."""
         super().process_event(event)
-        if event.type == pygame.QUIT:
+        if (
+            event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
+        ) or event.type == pygame.QUIT:
             self._is_valid = False
 
 
