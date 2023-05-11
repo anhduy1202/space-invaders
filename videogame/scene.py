@@ -208,18 +208,7 @@ class SpriteScene(PressAnyKeyToExitScene):
     def process_event(self, event):
         """Detect movement"""
         super().process_event(event)
-        if (
-            event.type == pygame.KEYDOWN
-            and event.key == pygame.K_SPACE
-            and len(self._player.bullets) < self._player.MAX_BULLETS
-        ):
-            player_bullet = pygame.Rect(
-                self._player.rect.x + self._player.WIDTH // 2 - 2,
-                self._player.rect.y + self._player.HEIGHT // 2 - 20,
-                5,
-                15,
-            )
-            self._player.bullets.append(player_bullet)
+        self._player.handle_shooting(event)
 
     def render_updates(self):
         super().render_updates()
@@ -233,9 +222,13 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
 
         if self.selected_option == "Start Game":
+            if self._player.health == 0:
+                self.selected_option == "End Game"
             self._player.handle_movement(key_pressed)
             self._alien_group.handle_bullet()
-            self._player.handle_bullet(self._alien_group.alien_group, self._obstacles)
+            self._player.handle_collision(
+                self._alien_group.alien_group, self._obstacles
+            )
             for alien in self._alien_group.alien_group:
                 alien.march_towards(self._alien_group)
                 alien.handle_bullet(self._obstacles)

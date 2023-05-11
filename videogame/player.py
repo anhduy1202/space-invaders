@@ -64,6 +64,7 @@ class Player(pygame.sprite.Sprite):
         self._win = val
 
     def handle_movement(self, key_pressed):
+        """Handle movement of player"""
         """Move left and right"""
         if key_pressed[pygame.K_LEFT] and self.rect.x - self.player_velocity > 0:
             self.rect.x -= self.player_velocity
@@ -72,7 +73,22 @@ class Player(pygame.sprite.Sprite):
         ):
             self.rect.x += self.player_velocity
 
-    def handle_bullet(self, aliens, obstacles):
+    def handle_shooting(self, event):
+        """Shooting movement"""
+        if (
+            event.type == pygame.KEYDOWN
+            and event.key == pygame.K_SPACE
+            and len(self.bullets) < self.MAX_BULLETS
+        ):
+            player_bullet = pygame.Rect(
+                self.rect.x + self.WIDTH // 2 - 2,
+                self.rect.y + self.HEIGHT // 2 - 20,
+                5,
+                15,
+            )
+            self.bullets.append(player_bullet)
+
+    def handle_collision(self, aliens, obstacles):
         """Detect when player hit spaceship"""
         for bullet in self.bullets:
             bullet.y -= 7
