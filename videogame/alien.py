@@ -6,7 +6,7 @@
 #
 # Lab 05-00
 #
-# This is the alient file to define alien logic
+# This is the alien file to define alien logic
 #
 """Alien object"""
 import os
@@ -70,16 +70,19 @@ class Alien(pygame.sprite.Sprite):
         """Setter for is_exploding"""
         self._is_exploding = val
 
-    def handle_bullet(self):
+    def handle_bullet(self, obstacles):
         """Handle bullet movement"""
         for bullet in self.bullets:
             bullet.y += self.bullet_velocity
             if bullet.y > self._screen.get_height() - 60:
                 self.bullets.remove(bullet)
+            """When bullet hit an obstacle"""
+            obs_idx = bullet.collidelist([obstacle.rect for obstacle in obstacles])
+            if obs_idx > -1:
+                self.bullets.remove(bullet)
 
     def march_towards(self, alien_group):
         """Aliens march towards spaceship"""
-        pause_time = 1000
         current_time = pygame.time.get_ticks()
         if current_time - self.last_pos > random.randint(1000, 3000):
             self.last_pos = current_time
@@ -92,9 +95,9 @@ class Alien(pygame.sprite.Sprite):
                 alien_group.stop_x = True
             if dx <= 0:
                 alien_group.stop_x = False
-                if alien_group.stop_y == False:
+                if alien_group.stop_y is False:
                     self.rect.y += 1
-            if alien_group.stop_x == False:
+            if alien_group.stop_x is False:
                 self.rect.x += self.speed
             else:
                 self.rect.x -= self.speed
@@ -126,7 +129,7 @@ class Aliens(Alien):
                 alien = Alien(self.data_dir, self.screen, x_pos, y_pos)
                 self.alien_group.add(alien)
 
-    def handle_bullet(self):
+    def handle_bullet(self, obstacles=None):
         """Handle alien bullets"""
         if len(self.alien_group) > 0:
             now = pygame.time.get_ticks()

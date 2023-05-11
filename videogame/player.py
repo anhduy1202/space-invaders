@@ -12,7 +12,6 @@
 import os
 
 import pygame
-import rgbcolors
 from animation import Explosion
 
 
@@ -73,23 +72,27 @@ class Player(pygame.sprite.Sprite):
         ):
             self.rect.x += self.player_velocity
 
-    def handle_bullet(self, aliens, player):
+    def handle_bullet(self, aliens, obstacles):
         """Detect when player hit spaceship"""
         for bullet in self.bullets:
             bullet.y -= 7
             if bullet.y < self.HEIGHT:
                 self.bullets.remove(bullet)
             else:
-                # When bullet hit an alien
-                index = bullet.collidelist([c.rect for c in aliens])
-                if index > -1:
-                    Explosion(aliens.sprites()[index])
-                    collided_alien = aliens.sprites()[index]
+                """When bullet hit an alien"""
+                alien_idx = bullet.collidelist([c.rect for c in aliens])
+                """When bullet hit an obstacle"""
+                obs_idx = bullet.collidelist([obstacle.rect for obstacle in obstacles])
+                if alien_idx > -1:
+                    Explosion(aliens.sprites()[alien_idx])
+                    collided_alien = aliens.sprites()[alien_idx]
                     collided_alien.minus_health = 1
                     if collided_alien.health == 0:
                         collided_alien.is_exploding = True
-                        aliens.sprites()[index].kill()
+                        aliens.sprites()[alien_idx].kill()
                         self.scores += 1
+                    self.bullets.remove(bullet)
+                if obs_idx > -1:
                     self.bullets.remove(bullet)
 
         """Detect when bullet hit player"""

@@ -19,6 +19,7 @@ from alien import Aliens
 from animation import Explosion
 from menu import Menu, Title
 from player import Player
+from obstacle import Obstacle
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
@@ -165,6 +166,13 @@ class SpriteScene(PressAnyKeyToExitScene):
         """ Load player, alien image"""
         self._player = Player(self._data_dir, self._screen)
         self._alien_group = Aliens(self._data_dir, self._screen)
+        OBSTACLE_Y_POS = self._screen.get_height() - 240
+        CENTER_X = self._screen.get_width() // 2
+        CENTER_Y = self._screen.get_height() // 2
+        self._obstacles = [
+            Obstacle(CENTER_X - 300, OBSTACLE_Y_POS),
+            Obstacle(CENTER_X + 200, OBSTACLE_Y_POS),
+        ]
         self._render_updates = pygame.sprite.RenderUpdates()
         Explosion.containers = self._render_updates
 
@@ -177,6 +185,8 @@ class SpriteScene(PressAnyKeyToExitScene):
                 (self._player.rect.x, self._player.rect.y),
             )
             self._alien_group.alien_group.draw(self._screen)
+            for obstacle in self._obstacles:
+                pygame.draw.rect(self._screen, rgbcolors.purple4, obstacle.rect)
             for bullet in self._player.bullets:
                 pygame.draw.rect(self._screen, rgbcolors.sky_blue, bullet)
             for alien in self._alien_group.alien_group:
@@ -225,7 +235,7 @@ class SpriteScene(PressAnyKeyToExitScene):
         if self.selected_option == "Start Game":
             self._player.handle_movement(key_pressed)
             self._alien_group.handle_bullet()
-            self._player.handle_bullet(self._alien_group.alien_group, self._player)
+            self._player.handle_bullet(self._alien_group.alien_group, self._obstacles)
             for alien in self._alien_group.alien_group:
                 alien.march_towards(self._alien_group)
-                alien.handle_bullet()
+                alien.handle_bullet(self._obstacles)
