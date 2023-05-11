@@ -18,8 +18,8 @@ import rgbcolors
 from alien import Aliens
 from animation import Explosion
 from menu import Menu, Title
-from player import Player
 from obstacle import Obstacle
+from player import Player
 
 # If you're interested in using abstract base classes, feel free to rewrite
 # these classes.
