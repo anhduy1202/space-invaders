@@ -344,7 +344,7 @@ class CutScene(PressAnyKeyToExitScene):
             self.end_text, True, rgbcolors.ghost_white
         )
         self.play_again_text = (
-            "Press any key to continue"
+            "Press space to continue"
             if self._game_state.win
             else "Press space to play again"
         )
