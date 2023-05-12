@@ -69,11 +69,12 @@ class SceneManager:
 class Scene:
     """Base class for making PyGame Scenes."""
 
-    def __init__(self, screen, background_color, soundtrack=None):
+    def __init__(self, screen, background_color, soundtrack=None, game_state=None):
         """Scene initializer"""
         self._screen = screen
         self._background = pygame.Surface(self._screen.get_size())
         self._background.fill(background_color)
+        self._game_state = game_state
         self._frame_rate = 60
         self._is_valid = True
         self._main_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -82,7 +83,6 @@ class Scene:
         self._lost = False
         "For the menu"
         self._select = 0
-        self.selected_option = ""
         self.menu = Menu(screen)
         self.title = Title(screen)
         self._soundtrack = soundtrack
@@ -91,23 +91,26 @@ class Scene:
     def draw(self):
         """Draw the scene with menu to start with"""
         self._screen.blit(self._background, (0, 0))
-        if self.menu.menu_shown:
-            self._screen.blit(
-                self.title.title, (self.title.title_pos_x, self.title.title_pos_y)
-            )
+
         # Display the menu options
-        if self.menu.menu_shown:
-            for index, option in enumerate(self.menu.options):
-                if index == self._select:
-                    text = self.menu.font.render(option, True, rgbcolors.yellow1)
-                else:
-                    text = self.menu.font.render(option, True, rgbcolors.ghost_white)
-                text_pos = (
-                    self.menu.x_coor,
-                    self.menu.y_coor + index * self.menu.spacing,
+        if self._game_state.selected_option == "Menu":
+            if self.menu.menu_shown:
+                self._screen.blit(
+                    self.title.title, (self.title.title_pos_x, self.title.title_pos_y)
                 )
-                self._screen.blit(text, text_pos)
-            self.display_rules_controls()
+                for index, option in enumerate(self.menu.options):
+                    if index == self._select:
+                        text = self.menu.font.render(option, True, rgbcolors.yellow1)
+                    else:
+                        text = self.menu.font.render(
+                            option, True, rgbcolors.ghost_white
+                        )
+                    text_pos = (
+                        self.menu.x_coor,
+                        self.menu.y_coor + index * self.menu.spacing,
+                    )
+                    self._screen.blit(text, text_pos)
+                self.display_rules_controls()
 
     def display_rules_controls(self):
         """Function to display the rules and controls"""
@@ -135,13 +138,13 @@ class Scene:
                     self._select = (self._select + 1) % len(self.menu.options)
                 elif event.key == pygame.K_RETURN:
                     if self.menu.options[self._select] == "Start Game":
-                        self.selected_option = "Start Game"
+                        self._game_state.selected_option = "Start Game"
                         self.menu.hide_menu()
                     elif self.menu.options[self._select] == "High Scores":
-                        self.selected_option == "High Scores"
+                        self._game_state.selected_option == "High Scores"
                         self.menu.hide_menu()
                     elif self.menu.options[self._select] == "Settings":
-                        self.selected_option == "Settings"
+                        self._game_state.selected_option == "Settings"
                         self.menu.hide_menu()
                     elif self.menu.options[self._select] == "Quit":
                         self._is_valid = False
@@ -155,9 +158,6 @@ class Scene:
 
     def update_scene(self):
         """Update the scene state."""
-        if self._lost or self._win:
-            self._scene_manager.set_next_scene("1")
-            self._is_valid = False
 
     def start_scene(self):
         """Start the scene."""
@@ -198,9 +198,10 @@ class PressAnyKeyToExitScene(Scene):
 class SpriteScene(PressAnyKeyToExitScene):
     """Sprite scene to display sprite on the window"""
 
-    def __init__(self, screen, scene_manager):
+    def __init__(self, screen, scene_manager, game_state):
         """Sprite init"""
         super().__init__(screen, rgbcolors.black, None)
+        self._game_state = game_state
         self._scene_manager = scene_manager
         self._render_updates = pygame.sprite.RenderUpdates()
         Explosion.containers = self._render_updates
@@ -226,7 +227,7 @@ class SpriteScene(PressAnyKeyToExitScene):
     def draw(self):
         """Draw player, bullets, enemies"""
         super().draw()
-        if self.selected_option == "Start Game":
+        if self._game_state.selected_option == "Start Game":
             self._screen.blit(
                 self._player.player,
                 (self._player.rect.x, self._player.rect.y),
@@ -271,15 +272,19 @@ class SpriteScene(PressAnyKeyToExitScene):
     def update_scene(self):
         """Detect and handle movement"""
         super().update_scene()
+        if self._game_state.lost or self._game_state.win:
+            self._scene_manager.set_next_scene("1")
+            self._is_valid = False
+
         key_pressed = pygame.key.get_pressed()
 
-        if self.selected_option == "Start Game":
+        if self._game_state.selected_option == "Start Game":
             if self._player.health == 0 and len(self._alien_group.alien_group) > 0:
-                self.selected_option = "End Game"
-                self._lost = True
+                self._game_state.selected_option = "End Game"
+                self._game_state.lost = True
             if self._player.health > 0 and len(self._alien_group.alien_group) == 0:
-                self.selected_option = "End Game"
-                self._win = True
+                self._game_state.selected_option = "End Game"
+                self._game_state.win = True
             self._player.handle_movement(key_pressed)
             self._alien_group.handle_bullet()
             self._player.handle_collision(
@@ -293,22 +298,25 @@ class SpriteScene(PressAnyKeyToExitScene):
 class CutScene(PressAnyKeyToExitScene):
     """When game ends"""
 
-    def __init__(self, screen, scene_manager):
+    def __init__(self, screen, scene_manager, game_state):
         """Init"""
         super().__init__(screen, rgbcolors.black, None)
         self._screen = screen
+        self._game_state = game_state
         self._scene_manager = scene_manager
         self._ending_background = pygame.transform.scale(
             pygame.image.load(os.path.join(self._data_dir, "ending.png")),
             (screen.get_width(), screen.get_height()),
         )
         self._next_key = "2"
-        title_font = pygame.font.Font(None, 42)
-        self.end_text = "CONGRATS !!!" if self._win else "OH NO :("
+        self.title_font = pygame.font.Font(None, 42)
+        self.end_text = ""
+        self.end_title = self.title_font.render(
+            self.end_text, True, rgbcolors.ghost_white
+        )
         self.high_score = "Highscore:"
         self.play_again_text = "Press space to play again"
-        self.end_title = title_font.render(self.end_text, True, rgbcolors.ghost_white)
-        self.play_again_title = title_font.render(
+        self.play_again_title = self.title_font.render(
             self.play_again_text, True, rgbcolors.ghost_white
         )
         self.font = pygame.font.Font(None, 36)
@@ -328,18 +336,30 @@ class CutScene(PressAnyKeyToExitScene):
         self._screen.blit(self.end_title, self.end_title_pos)
         self._screen.blit(self.play_again_title, self.play_again_title_pos)
 
+    def update_scene(self):
+        super().update_scene()
+        self.end_text = "YOU WIN !!!" if self._game_state.win is True else "YOU LOSE :("
+        self.end_title = self.title_font.render(
+            self.end_text, True, rgbcolors.ghost_white
+        )
+        self.end_title_pos = (
+            (self._screen.get_width() // 2 - (self.end_title.get_width() // 2)),
+            200,
+        )
+
     def process_event(self, event):
         """Handle selection"""
-        print(self._win)
-        print(self._lost)
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            self._game_state.win = False
+            self._game_state.lost = False
             self._scene_manager.add(
                 [
-                    SpriteScene(self._screen, self._scene_manager),
-                    CutScene(self._screen, self._scene_manager),
+                    SpriteScene(self._screen, self._scene_manager, self._game_state),
+                    CutScene(self._screen, self._scene_manager, self._game_state),
                 ]
             )
             self._scene_manager.set_next_scene("0")
+            self._game_state.selected_option = "Start Game"
             self._is_valid = False
         else:
             super().process_event(event)

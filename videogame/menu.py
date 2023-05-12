@@ -31,6 +31,7 @@ class Menu:
         self.options = ["Start Game", "High Scores", "Settings", "Quit"]
         self.rules_controls_text = [
             "RULES:",
+            "- Press Enter to select option",
             "- Use the arrow keys to move your spaceship",
             "- Press the space bar to fire",
             "DESTROY ALL THE INVADERS TO WIN!",

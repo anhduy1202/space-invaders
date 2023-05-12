@@ -13,7 +13,8 @@
 import warnings
 
 import pygame
-from scene import CutScene, SceneManager, SpriteScene
+from gamestate import GameState
+from scene import CutScene, Scene, SceneManager, SpriteScene
 
 
 def display_info():
@@ -77,10 +78,12 @@ class MyVideoGame(VideoGame):
 
     def build_scene_graph(self):
         """Build scene graph for the game demo."""
+        game_state = GameState()
+        base_scene = Scene(self._screen, (0, 0, 0), None, game_state)
         self.scene_graph.add(
             [
-                SpriteScene(self._screen, self.scene_graph),
-                CutScene(self._screen, self.scene_graph),
+                SpriteScene(self._screen, self.scene_graph, game_state),
+                CutScene(self._screen, self.scene_graph, game_state),
             ]
         )
         self._scene_graph.set_next_scene("0")
