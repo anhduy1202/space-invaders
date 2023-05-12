@@ -13,7 +13,7 @@
 import warnings
 
 import pygame
-from scene import SpriteScene
+from scene import CutScene, SceneManager, SpriteScene
 
 
 def display_info():
@@ -72,20 +72,27 @@ class MyVideoGame(VideoGame):
     def __init__(self):
         """Init the Pygame demo."""
         super().__init__(window_title="Space Invaders")
+        self._scene_graph = SceneManager()
         self.build_scene_graph()
 
     def build_scene_graph(self):
         """Build scene graph for the game demo."""
-        self._scene_graph = [SpriteScene(self._screen)]
+        self.scene_graph.add(
+            [
+                SpriteScene(self._screen, self.scene_graph),
+                CutScene(self._screen, self.scene_graph),
+            ]
+        )
+        self._scene_graph.set_next_scene("0")
 
     def run(self):
         """Run the game; the main game loop."""
         scene_iterator = iter(self.scene_graph)
+        current_scene = next(scene_iterator)
         while not self._game_is_over:
-            current_scene = next(scene_iterator)
             current_scene.start_scene()
             while current_scene.is_valid():
-                self._clock.tick(current_scene.frame_rate())
+                current_scene.delta_time = self._clock.tick(current_scene.frame_rate())
                 for event in pygame.event.get():
                     current_scene.process_event(event)
                 current_scene.update_scene()
@@ -93,6 +100,9 @@ class MyVideoGame(VideoGame):
                 current_scene.render_updates()
                 pygame.display.update()
             current_scene.end_scene()
-            self._game_is_over = True
+            try:
+                current_scene = next(scene_iterator)
+            except StopIteration:
+                self._game_is_over = True
         pygame.quit()
         return 0

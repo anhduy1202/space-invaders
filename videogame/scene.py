@@ -27,6 +27,45 @@ from player import Player
 # https://docs.python.org/3.8/library/abc.html
 
 
+class SceneManager:
+    """Scene manager class"""
+
+    def __init__(self):
+        """init"""
+        self._scene_dict = {}
+        self._current_scene = None
+        self._next_scene = None
+        # This is a safety to ensure that calling
+        # next() twice in a row without calling set_next_scene()
+        # will raise StopIteration.
+        self._reloaded = True
+
+    def set_next_scene(self, key):
+        """go to next scene"""
+        self._next_scene = self._scene_dict[key]
+        self._reloaded = True
+
+    def empty(self):
+        """Restart"""
+        self._scene_dict = {}
+
+    def add(self, scene_list):
+        """Add new scene"""
+        for index, scene in enumerate(scene_list):
+            self._scene_dict[str(index)] = scene
+        self._current_scene = self._scene_dict["0"]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._next_scene and self._reloaded:
+            self._reloaded = False
+            return self._next_scene
+        else:
+            raise StopIteration
+
+
 class Scene:
     """Base class for making PyGame Scenes."""
 
@@ -37,6 +76,10 @@ class Scene:
         self._background.fill(background_color)
         self._frame_rate = 60
         self._is_valid = True
+        self._main_dir = os.path.split(os.path.abspath(__file__))[0]
+        self._data_dir = os.path.join(self._main_dir, "data")
+        self._win = False
+        self._lost = False
         "For the menu"
         self._select = 0
         self.selected_option = ""
@@ -112,6 +155,9 @@ class Scene:
 
     def update_scene(self):
         """Update the scene state."""
+        if self._lost or self._win:
+            self._scene_manager.set_next_scene("1")
+            self._is_valid = False
 
     def start_scene(self):
         """Start the scene."""
@@ -152,14 +198,13 @@ class PressAnyKeyToExitScene(Scene):
 class SpriteScene(PressAnyKeyToExitScene):
     """Sprite scene to display sprite on the window"""
 
-    def __init__(self, screen):
+    def __init__(self, screen, scene_manager):
         """Sprite init"""
         super().__init__(screen, rgbcolors.black, None)
+        self._scene_manager = scene_manager
         self._render_updates = pygame.sprite.RenderUpdates()
         Explosion.containers = self._render_updates
         self._screen = screen
-        self._main_dir = os.path.split(os.path.abspath(__file__))[0]
-        self._data_dir = os.path.join(self._main_dir, "data")
         """ Load background image """
         self._background = pygame.transform.scale(
             pygame.image.load(os.path.join(self._data_dir, "background.jpg")),
@@ -207,6 +252,11 @@ class SpriteScene(PressAnyKeyToExitScene):
         self._screen.blit(health_bar, (20, 50))
         self._screen.blit(score_bar, (self._screen.get_width() - 200, 50))
 
+    def end_scene(self):
+        """End scene"""
+        super().end_scene()
+        self._is_valid = True
+
     def process_event(self, event):
         """Detect movement"""
         super().process_event(event)
@@ -224,8 +274,12 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
 
         if self.selected_option == "Start Game":
-            if self._player.health == 0:
-                self.selected_option == "End Game"
+            if self._player.health == 0 and len(self._alien_group.alien_group) > 0:
+                self.selected_option = "End Game"
+                self._lost = True
+            if self._player.health > 0 and len(self._alien_group.alien_group) == 0:
+                self.selected_option = "End Game"
+                self._win = True
             self._player.handle_movement(key_pressed)
             self._alien_group.handle_bullet()
             self._player.handle_collision(
@@ -234,3 +288,58 @@ class SpriteScene(PressAnyKeyToExitScene):
             for alien in self._alien_group.alien_group:
                 alien.march_towards(self._alien_group)
                 alien.handle_bullet(self._obstacles)
+
+
+class CutScene(PressAnyKeyToExitScene):
+    """When game ends"""
+
+    def __init__(self, screen, scene_manager):
+        """Init"""
+        super().__init__(screen, rgbcolors.black, None)
+        self._screen = screen
+        self._scene_manager = scene_manager
+        self._ending_background = pygame.transform.scale(
+            pygame.image.load(os.path.join(self._data_dir, "ending.png")),
+            (screen.get_width(), screen.get_height()),
+        )
+        self._next_key = "2"
+        title_font = pygame.font.Font(None, 42)
+        self.end_text = "CONGRATS !!!" if self._win else "OH NO :("
+        self.high_score = "Highscore:"
+        self.play_again_text = "Press space to play again"
+        self.end_title = title_font.render(self.end_text, True, rgbcolors.ghost_white)
+        self.play_again_title = title_font.render(
+            self.play_again_text, True, rgbcolors.ghost_white
+        )
+        self.font = pygame.font.Font(None, 36)
+        self.end_title_pos = (
+            (self._screen.get_width() // 2 - (self.end_title.get_width() // 2)),
+            200,
+        )
+        self.play_again_title_pos = (
+            (self._screen.get_width() // 2 - (self.play_again_title.get_width() // 2)),
+            400,
+        )
+        self.spacing = 50
+
+    def draw(self):
+        """Draw the cut scene"""
+        self._screen.blit(self._ending_background, (0, 0))
+        self._screen.blit(self.end_title, self.end_title_pos)
+        self._screen.blit(self.play_again_title, self.play_again_title_pos)
+
+    def process_event(self, event):
+        """Handle selection"""
+        print(self._win)
+        print(self._lost)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            self._scene_manager.add(
+                [
+                    SpriteScene(self._screen, self._scene_manager),
+                    CutScene(self._screen, self._scene_manager),
+                ]
+            )
+            self._scene_manager.set_next_scene("0")
+            self._is_valid = False
+        else:
+            super().process_event(event)
