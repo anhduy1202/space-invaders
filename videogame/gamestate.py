@@ -8,14 +8,16 @@
 #
 # This is the state file to define game state
 #
-"""state objects for making state with PyGame."""
+"""state objects for making global state for the game to easily manage it."""
 
 
 class GameState:
     """Game state"""
 
     def __init__(self):
-        """init"""
+        """Global state for the game"""
         self.selected_option = "Menu"
         self.win = False
+        self.health = 3
+        self.score = 0
         self.lost = False

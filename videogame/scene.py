@@ -212,7 +212,7 @@ class SpriteScene(PressAnyKeyToExitScene):
             (screen.get_width(), screen.get_height()),
         )
         """ Load player, alien image"""
-        self._player = Player(self._data_dir, self._screen)
+        self._player = Player(self._data_dir, self._screen, self._game_state)
         self._alien_group = Aliens(self._data_dir, self._screen)
         OBSTACLE_Y_POS = self._screen.get_height() - 240
         CENTER_X = self._screen.get_width() // 2
@@ -248,7 +248,7 @@ class SpriteScene(PressAnyKeyToExitScene):
             f"Health: {self._player.health}", 1, rgbcolors.white
         )
         score_bar = self._player.SCORE_FONT.render(
-            f"Scores: {self._player.scores}", 1, rgbcolors.yellow1
+            f"Scores: {self._player.score}", 1, rgbcolors.yellow1
         )
         self._screen.blit(health_bar, (20, 50))
         self._screen.blit(score_bar, (self._screen.get_width() - 200, 50))
@@ -264,6 +264,7 @@ class SpriteScene(PressAnyKeyToExitScene):
         self._player.handle_shooting(event)
 
     def render_updates(self):
+        """Render update"""
         super().render_updates()
         self._render_updates.clear(self._screen, self._background)
         self._render_updates.update()
@@ -338,9 +339,17 @@ class CutScene(PressAnyKeyToExitScene):
 
     def update_scene(self):
         super().update_scene()
-        self.end_text = "YOU WIN !!!" if self._game_state.win is True else "YOU LOSE :("
+        self.end_text = "YOU WIN !!!" if self._game_state.win else "YOU LOSE :("
         self.end_title = self.title_font.render(
             self.end_text, True, rgbcolors.ghost_white
+        )
+        self.play_again_text = (
+            "Press any key to continue"
+            if self._game_state.win
+            else "Press space to play again"
+        )
+        self.play_again_title = self.title_font.render(
+            self.play_again_text, True, rgbcolors.ghost_white
         )
         self.end_title_pos = (
             (self._screen.get_width() // 2 - (self.end_title.get_width() // 2)),
@@ -350,6 +359,9 @@ class CutScene(PressAnyKeyToExitScene):
     def process_event(self, event):
         """Handle selection"""
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if self._game_state.lost:
+                self._game_state.health = 3
+                self._game_state.score = 0
             self._game_state.win = False
             self._game_state.lost = False
             self._scene_manager.add(

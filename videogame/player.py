@@ -18,7 +18,7 @@ from animation import Explosion
 class Player(pygame.sprite.Sprite):
     """Player class aka the spaceship"""
 
-    def __init__(self, data_dir, screen):
+    def __init__(self, data_dir, screen, game_state):
         """Player attributes"""
         pygame.sprite.Sprite.__init__(self)
         self.WIDTH = 100
@@ -27,9 +27,10 @@ class Player(pygame.sprite.Sprite):
         self.HEALTH_FONT = pygame.font.Font(None, 52)
         self.SCORE_FONT = pygame.font.Font(None, 52)
         self.bullets = []
-        self._health = 3
+        self._game_state = game_state
+        self._health = self._game_state.health
         self._win = False
-        self.scores = 0
+        self._score = self._game_state.score
         self._velocity = 5
         self._screen = screen
         self.x_coor = self._screen.get_width() // 2 - self.WIDTH // 2
@@ -47,21 +48,23 @@ class Player(pygame.sprite.Sprite):
     def set_health(self, val):
         """Set player health"""
         self._health = val
+        self._game_state.health = val
+
+    @property
+    def score(self):
+        """Return player score"""
+        return self._score
+
+    @score.setter
+    def set_score(self, val):
+        """Set player score"""
+        self._score = val
+        self._game_state.score = val
 
     @property
     def player_velocity(self):
         """Return player velocity"""
         return self._velocity
-
-    @property
-    def win_game(self):
-        """Return if player win or not"""
-        return self._win
-
-    @win_game.setter
-    def win_game(self, val):
-        """Setter for win_game"""
-        self._win = val
 
     def handle_movement(self, key_pressed):
         """Handle movement of player"""
@@ -106,7 +109,7 @@ class Player(pygame.sprite.Sprite):
                     if collided_alien.health == 0:
                         collided_alien.is_exploding = True
                         aliens.sprites()[alien_idx].kill()
-                        self.scores += 1
+                        self.set_score += 1
                     self.bullets.remove(bullet)
                 if obs_idx > -1:
                     self.bullets.remove(bullet)
