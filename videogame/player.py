@@ -27,6 +27,10 @@ class Player(pygame.sprite.Sprite):
         self.HEALTH_FONT = pygame.font.Font(None, 52)
         self.SCORE_FONT = pygame.font.Font(None, 52)
         self.bullets = []
+        self._explosion_sound = pygame.mixer.Sound(
+            os.path.join(data_dir, "explosion.wav")
+        )
+        self._shooting_sound = pygame.mixer.Sound(os.path.join(data_dir, "shoot.wav"))
         self._game_state = game_state
         self._health = self._game_state.health
         self._win = False
@@ -83,6 +87,7 @@ class Player(pygame.sprite.Sprite):
             and event.key == pygame.K_SPACE
             and len(self.bullets) < self.MAX_BULLETS
         ):
+            self._shooting_sound.play()
             player_bullet = pygame.Rect(
                 self.rect.x + self.WIDTH // 2 - 2,
                 self.rect.y + self.HEIGHT // 2 - 20,
@@ -104,6 +109,7 @@ class Player(pygame.sprite.Sprite):
                 obs_idx = bullet.collidelist([obstacle.rect for obstacle in obstacles])
                 if alien_idx > -1:
                     Explosion(aliens.sprites()[alien_idx])
+                    self._explosion_sound.play()
                     collided_alien = aliens.sprites()[alien_idx]
                     collided_alien.minus_health = 1
                     if collided_alien.health == 0:

@@ -10,6 +10,7 @@
 #
 """Game objects to create PyGame based games."""
 
+import os
 import warnings
 
 import pygame
@@ -44,6 +45,9 @@ class VideoGame:
         self._window_size = (window_width, window_height)
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(self._window_size)
+        self._main_dir = os.path.dirname(os.path.abspath(__file__))
+        self._data_dir = os.path.join(self._main_dir, "data")
+        self.bg_sound_track = os.path.join(self._data_dir, "background_audio.mp3")
         self._title = window_title
         pygame.display.set_caption(self._title)
         self._game_is_over = False
@@ -79,10 +83,17 @@ class MyVideoGame(VideoGame):
     def build_scene_graph(self):
         """Build scene graph for the game demo."""
         game_state = GameState()
-        base_scene = Scene(self._screen, (0, 0, 0), None, game_state)
+        base_scene = Scene(
+            self._screen,
+            (0, 0, 0),
+            self.bg_sound_track,
+            game_state,
+        )
         self.scene_graph.add(
             [
-                SpriteScene(self._screen, self.scene_graph, game_state),
+                SpriteScene(
+                    self._screen, self.scene_graph, self.bg_sound_track, game_state
+                ),
                 CutScene(self._screen, self.scene_graph, game_state),
             ]
         )

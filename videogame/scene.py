@@ -71,7 +71,7 @@ class SceneManager:
 class Scene:
     """Base class for making PyGame Scenes."""
 
-    def __init__(self, screen, background_color, soundtrack=None, game_state=None):
+    def __init__(self, screen, background_color, soundtrack, game_state):
         """Scene initializer"""
         self._screen = screen
         self._background = pygame.Surface(self._screen.get_size())
@@ -81,6 +81,9 @@ class Scene:
         self._is_valid = True
         self._main_dir = os.path.split(os.path.abspath(__file__))[0]
         self._data_dir = os.path.join(self._main_dir, "data")
+        self._select_sound = pygame.mixer.Sound(
+            os.path.join(self._data_dir, "select.mp3")
+        )
         self._win = False
         self._lost = False
         "For the menu"
@@ -139,8 +142,22 @@ class Scene:
                     "Move the selected option down"
                     self._select = (self._select + 1) % len(self.menu.options)
                 elif event.key == pygame.K_RETURN:
+                    self._select_sound.play()
                     if self.menu.options[self._select] == "Start Game":
                         self._game_state.selected_option = "Start Game"
+                        self._soundtrack = os.path.join(
+                            self._data_dir, "game_audio.mp3"
+                        )
+                        if self._soundtrack:
+                            try:
+                                pygame.mixer.music.stop()
+                                pygame.mixer.music.load(self._soundtrack)
+                                pygame.mixer.music.set_volume(0.2)
+                            except pygame.error as pygame_error:
+                                print("Cannot open the mixer?")
+                                print("\n".join(pygame_error.args))
+                                raise SystemExit("broken!!") from pygame_error
+                            pygame.mixer.music.play(-1)
                         self.menu.hide_menu()
                     elif self.menu.options[self._select] == "High Scores":
                         self._game_state.selected_option == "High Scores"
@@ -163,15 +180,27 @@ class Scene:
 
     def start_scene(self):
         """Start the scene."""
-        if self._soundtrack:
+        if self._game_state.selected_option == "Start Game":
+            soundtrack = os.path.join(self._data_dir, "game_audio.mp3")
             try:
-                pygame.mixer.music.load(self._soundtrack)
+                pygame.mixer.stop()
+                pygame.mixer.music.load(soundtrack)
                 pygame.mixer.music.set_volume(0.2)
             except pygame.error as pygame_error:
                 print("Cannot open the mixer?")
                 print("\n".join(pygame_error.args))
                 raise SystemExit("broken!!") from pygame_error
             pygame.mixer.music.play(-1)
+        else:
+            if self._soundtrack:
+                try:
+                    pygame.mixer.music.load(self._soundtrack)
+                    pygame.mixer.music.set_volume(0.2)
+                except pygame.error as pygame_error:
+                    print("Cannot open the mixer?")
+                    print("\n".join(pygame_error.args))
+                    raise SystemExit("broken!!") from pygame_error
+                pygame.mixer.music.play(-1)
 
     def end_scene(self):
         """End the scene."""
@@ -200,9 +229,10 @@ class PressAnyKeyToExitScene(Scene):
 class SpriteScene(PressAnyKeyToExitScene):
     """Sprite scene to display sprite on the window"""
 
-    def __init__(self, screen, scene_manager, game_state):
+    def __init__(self, screen, scene_manager, soundtrack, game_state):
         """Sprite init"""
-        super().__init__(screen, rgbcolors.black, None)
+        super().__init__(screen, rgbcolors.black, soundtrack, game_state)
+        self._soundtrack = soundtrack
         self._game_state = game_state
         self._scene_manager = scene_manager
         self._render_updates = pygame.sprite.RenderUpdates()
@@ -282,9 +312,11 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
 
         if self._game_state.selected_option == "Start Game":
+            "Lose"
             if self._player.health == 0 and len(self._alien_group.alien_group) > 0:
                 self._game_state.selected_option = "End Game"
                 self._game_state.lost = True
+            "Win"
             if self._player.health > 0 and len(self._alien_group.alien_group) == 0:
                 self._game_state.selected_option = "End Game"
                 self._game_state.win = True
@@ -303,7 +335,7 @@ class CutScene(PressAnyKeyToExitScene):
 
     def __init__(self, screen, scene_manager, game_state):
         """Init"""
-        super().__init__(screen, rgbcolors.black, None)
+        super().__init__(screen, rgbcolors.black, None, game_state)
         self._screen = screen
         self.current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._game_state = game_state
@@ -312,6 +344,7 @@ class CutScene(PressAnyKeyToExitScene):
             pygame.image.load(os.path.join(self._data_dir, "ending.png")),
             (screen.get_width(), screen.get_height()),
         )
+        self._sound_track = os.path.join(self._data_dir, "ending_audio.mp3")
         self._next_key = "2"
         self.title_font = pygame.font.Font(None, 42)
         self.end_text = ""
@@ -330,7 +363,7 @@ class CutScene(PressAnyKeyToExitScene):
         self.font = pygame.font.Font(None, 36)
         self.end_title_pos = (
             (self._screen.get_width() // 2 - (self.end_title.get_width() // 2)),
-            200,
+            0,
         )
         self.play_again_title_pos = (
             (self._screen.get_width() // 2 - (self.play_again_title.get_width() // 2)),
@@ -338,9 +371,22 @@ class CutScene(PressAnyKeyToExitScene):
         )
         self.high_score_pos = (
             (self._screen.get_width() // 2 - (self.high_score_title.get_width() // 2)),
-            260,
+            160,
         )
         self.spacing = 50
+
+    def start_scene(self):
+        super().start_scene()
+        if self._sound_track:
+            try:
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load(self._sound_track)
+                pygame.mixer.music.set_volume(0.2)
+            except pygame.error as pygame_error:
+                print("Cannot open the mixer?")
+                print("\n".join(pygame_error.args))
+                raise SystemExit("broken!!") from pygame_error
+            pygame.mixer.music.play(-1)
 
     def draw(self):
         """Draw the cut scene"""
@@ -348,7 +394,7 @@ class CutScene(PressAnyKeyToExitScene):
         self._screen.blit(self.end_title, self.end_title_pos)
         self._screen.blit(self.play_again_title, self.play_again_title_pos)
         self._screen.blit(self.high_score_title, self.high_score_pos)
-        score_pos_y = 340
+        score_pos_y = 240
         for idx, score in enumerate(self.high_scores):
             text = f"{idx+1}. {score['score']} points"
             score_text = self.font.render(text, True, rgbcolors.white)
@@ -386,25 +432,30 @@ class CutScene(PressAnyKeyToExitScene):
         )
         self.end_title_pos = (
             (self._screen.get_width() // 2 - (self.end_title.get_width() // 2)),
-            200,
+            60,
         )
 
     def process_event(self, event):
         """Handle selection"""
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             if self._game_state.lost:
+                self._game_state.selected_option = "Start Game"
                 self._game_state.health = 3
                 self._game_state.score = 0
             self._game_state.win = False
             self._game_state.lost = False
             self._scene_manager.add(
                 [
-                    SpriteScene(self._screen, self._scene_manager, self._game_state),
+                    SpriteScene(
+                        self._screen,
+                        self._scene_manager,
+                        self._soundtrack,
+                        self._game_state,
+                    ),
                     CutScene(self._screen, self._scene_manager, self._game_state),
                 ]
             )
             self._scene_manager.set_next_scene("0")
-            self._game_state.selected_option = "Start Game"
             self._is_valid = False
         else:
             super().process_event(event)
