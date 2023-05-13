@@ -88,19 +88,20 @@ class Alien(pygame.sprite.Sprite):
             self.last_pos = current_time
             dx = self.rect.x + self.speed
             dy = self.rect.y + self.speed
-            if dy > self._screen.get_height() - 200:
-                print("OUT OF BOUND")
+            if dy > self._screen.get_height() - 300:
                 alien_group.stop_y = True
             if dx > self._screen.get_width() - self.WIDTH:
                 alien_group.stop_x = True
             if dx <= 0:
                 alien_group.stop_x = False
-                if alien_group.stop_y is False:
+                if dy < self._screen.get_height() - 300:
                     self.rect.y += 1
             if alien_group.stop_x is False:
                 self.rect.x += self.speed
             else:
                 self.rect.x -= self.speed
+                if dy < self._screen.get_height() - 300:
+                    self.rect.y += self.speed
 
 
 class Aliens(Alien):

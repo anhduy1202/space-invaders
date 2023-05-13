@@ -235,6 +235,9 @@ class SpriteScene(PressAnyKeyToExitScene):
         self._soundtrack = soundtrack
         self._game_state = game_state
         self._scene_manager = scene_manager
+        self._healing_sound = pygame.mixer.Sound(
+            os.path.join(self._data_dir, "heal.wav")
+        )
         self._render_updates = pygame.sprite.RenderUpdates()
         Explosion.containers = self._render_updates
         self._screen = screen
@@ -312,6 +315,11 @@ class SpriteScene(PressAnyKeyToExitScene):
         key_pressed = pygame.key.get_pressed()
 
         if self._game_state.selected_option == "Start Game":
+            "Bonus for player when reaches 10,15,20 points"
+            if self._game_state.score in [10, 15, 20]:
+                self._player.set_health += 1
+                self._player.set_score += 1
+                self._healing_sound.play()
             "Lose"
             if self._player.health == 0 and len(self._alien_group.alien_group) > 0:
                 self._game_state.selected_option = "End Game"
