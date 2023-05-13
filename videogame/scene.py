@@ -10,7 +10,9 @@
 #
 """Scene objects for making games with PyGame."""
 
+import datetime
 import os
+import pickle
 import random
 
 import pygame
@@ -303,6 +305,7 @@ class CutScene(PressAnyKeyToExitScene):
         """Init"""
         super().__init__(screen, rgbcolors.black, None)
         self._screen = screen
+        self.current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self._game_state = game_state
         self._scene_manager = scene_manager
         self._ending_background = pygame.transform.scale(
@@ -316,6 +319,10 @@ class CutScene(PressAnyKeyToExitScene):
             self.end_text, True, rgbcolors.ghost_white
         )
         self.high_score = "Highscore:"
+        self.high_scores = []
+        self.high_score_title = self.title_font.render(
+            self.high_score, True, rgbcolors.ghost_white
+        )
         self.play_again_text = "Press space to play again"
         self.play_again_title = self.title_font.render(
             self.play_again_text, True, rgbcolors.ghost_white
@@ -327,7 +334,11 @@ class CutScene(PressAnyKeyToExitScene):
         )
         self.play_again_title_pos = (
             (self._screen.get_width() // 2 - (self.play_again_title.get_width() // 2)),
-            400,
+            700,
+        )
+        self.high_score_pos = (
+            (self._screen.get_width() // 2 - (self.high_score_title.get_width() // 2)),
+            260,
         )
         self.spacing = 50
 
@@ -336,10 +347,32 @@ class CutScene(PressAnyKeyToExitScene):
         self._screen.blit(self._ending_background, (0, 0))
         self._screen.blit(self.end_title, self.end_title_pos)
         self._screen.blit(self.play_again_title, self.play_again_title_pos)
+        self._screen.blit(self.high_score_title, self.high_score_pos)
+        score_pos_y = 340
+        for idx, score in enumerate(self.high_scores):
+            text = f"{idx+1}. {score['score']} points"
+            score_text = self.font.render(text, True, rgbcolors.white)
+            score_pos_x = self._screen.get_width() // 2 - (score_text.get_width() // 2)
+            self._screen.blit(score_text, (score_pos_x, score_pos_y))
+            score_pos_y += self.spacing
 
     def update_scene(self):
         super().update_scene()
         self.end_text = "YOU WIN !!!" if self._game_state.win else "YOU LOSE :("
+        if self._game_state.lost:
+            try:
+                pickle_file = os.path.join(self._data_dir, "scores.pkl")
+                if os.path.exists(pickle_file):
+                    with open(pickle_file, "rb") as f:
+                        self.high_scores = pickle.load(f)
+            except FileNotFoundError:
+                self.high_scores = []
+            new_score = {"score": self._game_state.score, "date": self.current_date}
+            if new_score not in self.high_scores and self._game_state.score > 0:
+                self.high_scores.append(new_score)
+            self.high_scores.sort(key=lambda x: x["score"], reverse=True)
+            with open(pickle_file, "wb") as f:
+                pickle.dump(self.high_scores, f, pickle.HIGHEST_PROTOCOL)
         self.end_title = self.title_font.render(
             self.end_text, True, rgbcolors.ghost_white
         )
