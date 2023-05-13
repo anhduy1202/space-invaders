@@ -465,5 +465,6 @@ class CutScene(PressAnyKeyToExitScene):
             )
             self._scene_manager.set_next_scene("0")
             self._is_valid = False
+            self._game_state.selected_option = "Start Game"
         else:
             super().process_event(event)
